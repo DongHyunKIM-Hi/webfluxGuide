@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.webfluxguide.model.request.UserRequestDto;
 import org.example.webfluxguide.model.response.UserResponseDto;
 import org.example.webfluxguide.service.UserService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,9 +28,10 @@ public class UserController {
     }
 
     @GetMapping("/users/{userId}")
-    public Mono<UserResponseDto> getUserById(@PathVariable Long userId) {
+    public Mono<ResponseEntity<UserResponseDto>> getUserById(@PathVariable Long userId) {
         return userService.getUserByUserId(userId)
-            .map(UserResponseDto::of);
+            .map(u -> ResponseEntity.ok(UserResponseDto.of(u)))
+            .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
 
     @GetMapping("/users")
@@ -44,8 +46,10 @@ public class UserController {
     }
 
     @PutMapping("/users/{userId}")
-    public Mono<UserResponseDto> updateUser(@PathVariable Long userId, @RequestBody UserRequestDto requestDto) {
+    public Mono<ResponseEntity<UserResponseDto>> updateUser(@PathVariable Long userId, @RequestBody UserRequestDto requestDto) {
         return userService.updateUser(userId, requestDto.getName())
-            .map(UserResponseDto::of);
+            .map(u -> ResponseEntity.ok(UserResponseDto.of(u)))
+            .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
+            ;
     }
 }
